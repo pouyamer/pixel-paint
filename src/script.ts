@@ -5,78 +5,46 @@ const elBtnSaveDrawing = document.querySelector(
 ) as HTMLButtonElement
 
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D
-const size = { width: 700, height: 700 }
-canvas.width = size.width
-canvas.height = size.height
+const { size } = config.canvas
 
-enum brushMode {
-  PartyMode,
-  SingleColor,
-  IncreasingHue
-}
+canvas.width = size
+canvas.height = size
 
-let brushSize = 3
-
-let randomizedBrushSize: boolean = true
-
-// if brush mode size is ranged (randomizedBrushSize) then picks from a range:
-const brushSizeRange = {
-  min: 0,
-  max: 3
-}
-
-// if brush mode is IncreasingHue
 let brushHue = 0
-const brushIncreasingHueRate = 1
 
-const currentBrushMode = brushMode.IncreasingHue
+let activeColorIndex: number = 0
 
-const colorConfig = {
-  saturation: 85,
-  lightness: 70
-}
-
-const h_alpha = 0.5 // alpha for highlighted Block(s)
-
-const howManyColors = 16
-const pixelsCount = 64
-
-let activeColorIndex: number
-
-const colorOptions = Array(howManyColors)
+const colorOptions = Array(config.canvas.colors)
   .fill(null)
   .map(
     (_, i) =>
       new Color(
-        (360 * i) / howManyColors,
-        colorConfig.saturation,
-        colorConfig.lightness,
+        (360 * i) / config.canvas.colors,
+        config.color.saturation,
+        config.color.lightness,
         1
       )
   )
-
-const highlightedColors = colorOptions.map(
-  color => new Color(color.hue, color.saturation, color.lightness, h_alpha)
-)
 
 let currentColor = colorOptions[0]
 let mouseOnCanvas: boolean = false
 
 // Initiatializing the squares
 let squares: Square[] = []
-for (let i = 0; i < size.width; i += size.width / pixelsCount) {
-  for (let j = 0; j < size.height; j += size.height / pixelsCount) {
+const { squareCount } = config.canvas
+for (let i = 0; i < size; i += size / squareCount) {
+  for (let j = 0; j < size; j += size / squareCount) {
     squares.push(
-      new Square(i, j, size.height / pixelsCount, "transparent", "black", true)
+      new Square(i, j, size / squareCount, "transparent", "black", true)
     )
   }
 }
 
 const animate = (): void => {
-  ctx.clearRect(0, 0, size.height, size.width)
+  const { showGrid } = config.canvas
   for (let square of squares) {
     square.fill(ctx)
-    square.stroke(ctx)
+    showGrid && square.stroke(ctx)
   }
   requestAnimationFrame(animate)
 }

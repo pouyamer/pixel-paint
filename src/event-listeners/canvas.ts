@@ -16,12 +16,13 @@ const paintWithMouse = (e: MouseEvent) => {
     y: e.offsetY
   }
 
+  let { size: brushSize, sizeRange, randomizedSize } = config.brush
+
   const selectedSquares = squares.filter((square: Square) => {
-    if (randomizedBrushSize) {
+    if (randomizedSize) {
       brushSize =
-        Math.floor(
-          Math.random() * (brushSizeRange.max - brushSizeRange.min + 1)
-        ) + brushSizeRange.min
+        Math.floor(Math.random() * (sizeRange.max - sizeRange.min + 1)) +
+        sizeRange.min
     }
 
     const { x, y } = mousePositionRelativeToClick
@@ -43,25 +44,42 @@ const paintWithMouse = (e: MouseEvent) => {
     selectedSquares.forEach(square => {
       // square.fillColor = currentColor.stringify()
 
-      if (currentBrushMode.valueOf() === brushMode.IncreasingHue.valueOf()) {
-        square.fillColor = new Color(
-          brushHue,
-          colorConfig.saturation,
-          colorConfig.lightness,
-          1
-        ).stringify()
-        brushHue += brushIncreasingHueRate
-        return
-      }
-      if (currentBrushMode.valueOf() === brushMode.PartyMode.valueOf()) {
-        square.fillColor =
-          colorOptions[
-            Math.floor(Math.random() * colorOptions.length)
-          ].stringify()
-        return
-      } else {
-        square.fillColor = currentColor.stringify()
-        return
+      const { mode } = config.brush
+
+      switch (mode.valueOf()) {
+        case brushMode.IncreasingOrDecreasingHue.valueOf():
+          const { hueIncOrDec } = config.brush
+          square.fillColor = new Color(
+            brushHue,
+            config.color.saturation,
+            config.color.lightness,
+            1
+          ).stringify()
+          brushHue =
+            brushHue +
+            (hueIncOrDec.increasing ? hueIncOrDec.rate : -hueIncOrDec.rate)
+          break
+        case brushMode.PartyMode.valueOf():
+          square.fillColor =
+            colorOptions[
+              Math.floor(Math.random() * colorOptions.length)
+            ].stringify()
+          break
+
+        case brushMode.ShadesMode.valueOf():
+          const { min, max } = config.brush.shadesMode.range
+          const { hue, saturation } = currentColor
+          square.fillColor = new Color(
+            hue,
+            saturation,
+            Math.floor(Math.random() * (max - min + 1)) + min,
+
+            1
+          ).stringify()
+          break
+        default:
+          square.fillColor = currentColor.stringify()
+          break
       }
     })
   }
